@@ -1,0 +1,26 @@
+# Virtual environments
+.law-agent
+.env
+venv/
+.venv/
+law-agent/
+
+# Databases
+data/chroma_db/
+data/chunks.json
+data/matsne-31702-134.pdf
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Logs
+*.log
