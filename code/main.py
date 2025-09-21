@@ -1,15 +1,9 @@
 import streamlit as st
-import os
-from google import genai
 from dotenv import load_dotenv
-from processing.text_processing import clean_noise
-from processing.chunking import chunk_georgian_civil_code
-from embeddings.embeddings import GeminiEmbeddingFunction
-from agent.vector_store import load_data
-from agent.agent import answer_question
+from rag_pipeline.vector_store import load_data
+from rag_pipeline.llm import answer_question
 from processing.data_processing import load_chunks
-from agent.sparse_retriever import SparseRetriever
-from agent.hybrid_rag import HybridRAG
+from rag_pipeline.hybrid_rag import HybridRAG
 
 load_dotenv()
 
@@ -26,8 +20,17 @@ def main():
     st.set_page_config(page_title="AI ასისტენტი", page_icon="🤖", layout="centered")
     st.title("საქართველოს სამოქალაქო კოდექსის AI RAG ასისტენტი")
 
+    welcome = """
+    👋 გამარჯობა!\n
+    მე ვარ **AI იურიდიული ასისტენტი**, რომელიც სპეციალიზებულია **საქართველოს სამოქალაქო კოდექსში**.\n
+    შეგიძლიათ მომწეროთ ნებისმიერი კითხვა და მე მოგაწვდით ზუსტ და სტრუქტურირებულ პასუხს **მხოლოდ კოდექსის ტექსტზე დაყრდნობით.**
+    """
+
     # Initialize the entire RAG system and cache it
     rag = initialize_rag_system()
+
+    with st.chat_message("ai"):
+        st.write(welcome)
 
     # Initialize chat history
     if "messages" not in st.session_state:
