@@ -1,14 +1,17 @@
 import chromadb
-from embeddings.embeddings import GeminiEmbeddingFunction
+from core.embeddings import GeminiEmbeddingFunction
 
-# Persistent client (saves to disk)
+# Persistent client (ინახება მეხსიერებაში)
 chroma_client = chromadb.PersistentClient(path="./data/chroma_db")
 
 def load_data(all_chunks):
     """
-    Ensure Chroma collection is created and populated only once.
-    Returns the collection object.
+    ეს ფუნქცია ქმნის ან იღებს Chroma მონაცემთა ბაზის კოლექციას სახელად „georgian_civil_code“ და ავსებს მას მოწოდებული ტექსტის ფრაგმენტებით (all_chunks),
+    თუ ის ცარიელია. ფუნქცია იყენებს GeminiEmbeddingFunction-ს ტექსტის ემბედინგისთვის (ვექტორულ წარმოდგენად გარდაქმნისთვის).
+    თუ კოლექცია ცარიელია, ის ამატებს ფრაგმენტების ID-ებს, ტექსტებსა და მეტამონაცემებს.
+    თუ კოლექცია უკვე შევსებულია, გამოტოვებს ამ ნაბიჯს. აბრუნებს კოლექციის ობიექტს.
     """
+    
     collection = chroma_client.get_or_create_collection(
         name="georgian_civil_code",
         embedding_function=GeminiEmbeddingFunction()

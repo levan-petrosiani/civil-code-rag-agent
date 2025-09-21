@@ -9,14 +9,17 @@ load_dotenv()
 
 @st.cache_resource
 def initialize_rag_system():
-    """Loads all data and initializes the RAG agent."""
-    print("--- Initializing RAG System (this should run only once) ---")
+    """RAG სისტემის ინიციალიზაცია"""
     chunks = load_chunks()
     collection = load_data(chunks)
 
     return HybridRAG(collection, chunks)
 
 def main():
+    """
+    ეს ფუნქცია წარმოადგენს Streamlit აპლიკაციის ძირითად ლოგიკას, რომელიც ქმნის ინტერაქტიულ AI ასისტენტს საქართველოს სამოქალაქო კოდექსისთვის.
+    """
+
     st.set_page_config(page_title="AI ასისტენტი", page_icon="🤖", layout="centered")
     st.title("საქართველოს სამოქალაქო კოდექსის AI RAG ასისტენტი")
 

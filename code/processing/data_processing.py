@@ -9,7 +9,7 @@ DOCX_FILE = "./data/document.docx"
 
 
 def process_and_save_chunks():
-    """Parse DOCX, clean it, chunk it, and save results to JSON."""
+    """Parse DOCX, გაასუფთავე, დაყავი, და შეინახე JSON ფორმატში."""
     print("🔄 Processing DOCX and creating chunks...")
     document = Document(DOCX_FILE)
     cleaned_paragraphs = clean_noise(document)
@@ -24,7 +24,7 @@ def process_and_save_chunks():
 
 
 def load_chunks():
-    """Load chunks from JSON if available, otherwise process DOCX."""
+    """თუ JSON უკვე არსებობს მანდედან წამოიღოს, თუ არა და დაამუშავოს თავიდან DOCX."""
     if not os.path.exists(CHUNKS_FILE):
         return process_and_save_chunks()
 
