@@ -29,28 +29,30 @@ RAG (Retrieval-Augmented Generation) არქიტექტურაზე დ
 7.  **პასუხის ჩვენება** ⬅️ საბოლოო, ფორმატირებული პასუხი უბრუნდება მომხმარებელს ინტერფეისში.
 
 ## 📂 პროექტის სტრუქტურა
-AI-Agent-RAG/
-├── code/
-│   ├── rag_pipeline/
-│   │   ├── hybrid_rag.py         # ჰიბრიდული ძიებისა და re-ranking-ის ლოგიკა
-│   │   ├── sparse_retriever.py     # BM25-ზე დაფუძნებული ძიების კლასი
-│   │   ├── generator.py            # LLM-თან კომუნიკაცია და პასუხის გენერაცია
-│   │   └── vector_store.py         # ChromaDB ვექტორულ ბაზასთან მუშაობა
-│   ├── core/
-│   │   └── embeddings.py           # Gemini Embedding მოდელის ინტეგრაცია
-│   ├── processing/
-│   │   ├── data_processing.py    # მონაცემთა დამუშავების მთავარი სკრიპტი
-│   │   ├── chunking.py             # ტექსტის სემანტიკურ ნაწილებად დაყოფა
-│   │   └── text_processing.py      # ტექსტის გასუფთავება არასაჭირო ინფორმაციისგან
-│   └── main.py                     # Streamlit აპლიკაციის მთავარი ფაილი
-├── data/
-│   ├── chroma_db/                  # ვექტორული ბაზის ფაილები
-│   ├── chunks.json                 # დამუშავებული და დაყოფილი ტექსტი
-│   └── document.docx               # საწყისი დოკუმენტი (სამოქალაქო კოდექსი)
-├── .env                            # გარემოს ცვლადების ფაილი (API გასაღები)
-├── .gitignore
-├── README.md
-└── requirements.txt
+    ```bash
+    AI-Agent-RAG/
+    ├── code/
+    │   ├── rag_pipeline/
+    │   │   ├── hybrid_rag.py         # ჰიბრიდული ძიებისა და re-ranking-ის ლოგიკა
+    │   │   ├── sparse_retriever.py     # BM25-ზე დაფუძნებული ძიების კლასი
+    │   │   ├── generator.py            # LLM-თან კომუნიკაცია და პასუხის გენერაცია
+    │   │   └── vector_store.py         # ChromaDB ვექტორულ ბაზასთან მუშაობა
+    │   ├── core/
+    │   │   └── embeddings.py           # Gemini Embedding მოდელის ინტეგრაცია
+    │   ├── processing/
+    │   │   ├── data_processing.py    # მონაცემთა დამუშავების მთავარი სკრიპტი
+    │   │   ├── chunking.py             # ტექსტის სემანტიკურ ნაწილებად დაყოფა
+    │   │   └── text_processing.py      # ტექსტის გასუფთავება არასაჭირო ინფორმაციისგან
+    │   └── main.py                     # Streamlit აპლიკაციის მთავარი ფაილი
+    ├── data/
+    │   ├── chroma_db/                  # ვექტორული ბაზის ფაილები
+    │   ├── chunks.json                 # დამუშავებული და დაყოფილი ტექსტი
+    │   └── document.docx               # საწყისი დოკუმენტი (სამოქალაქო კოდექსი)
+    ├── .env                            # გარემოს ცვლადების ფაილი (API გასაღები)
+    ├── .gitignore
+    ├── README.md
+    └── requirements.txt
+    ```
 
 ## 🛠️ ინსტალაცია და გაშვება
 
