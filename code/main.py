@@ -13,9 +13,21 @@ from agent.hybrid_rag import HybridRAG
 
 load_dotenv()
 
+@st.cache_resource
+def initialize_rag_system():
+    """Loads all data and initializes the RAG agent."""
+    print("--- Initializing RAG System (this should run only once) ---")
+    chunks = load_chunks()
+    collection = load_data(chunks)
+
+    return HybridRAG(collection, chunks)
+
 def main():
     st.set_page_config(page_title="AI ასისტენტი", page_icon="🤖", layout="centered")
     st.title("საქართველოს სამოქალაქო კოდექსის AI RAG ასისტენტი")
+
+    # Initialize the entire RAG system and cache it
+    rag = initialize_rag_system()
 
     # Initialize chat history
     if "messages" not in st.session_state:
@@ -27,23 +39,13 @@ def main():
             st.markdown(message["content"])
 
     # Accept user input
-    if prompt := st.chat_input("ჩაწერეთ შეკითხვა საქართველოს სამოქალაქო კოდექსის შესახებ"):
+    if prompt := st.chat_input("თქვენი შეკითხვა საქართველოს სამოქალაქო კოდექსის შესახებ"):
         # Store user input
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
             st.markdown(prompt)
 
-        # Build conversation for Gemini
-        contents = [
-            {"role": m["role"], "parts": [{"text": m["content"]}]}
-            for m in st.session_state.messages
-        ]
-
         # Stream response
-        chunks = load_chunks()
-        collection = load_data(chunks)
-        rag = HybridRAG(collection, chunks)
-            
         results = rag.retrieve(prompt)
 
         context = "\n\n".join(results)
