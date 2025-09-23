@@ -32,34 +32,35 @@ class GeminiEmbeddingFunction:
     """
 
     
-    def __init__(self, model="gemini-embedding-001", batch_size=100):
-        self.model = model
-        self.batch_size = batch_size
+    class GeminiEmbeddingFunction:
 
-    def __call__(self, input: list[str]) -> list[list[float]]:
-        """Keep compatibility with my old code."""
-        return self._embed(input)
+        def __init__(self, model="gemini-embedding-001", batch_size=100):
+            self.model = model
+            self.batch_size = batch_size
 
-    def embed_documents(self, texts: list[str]) -> list[list[float]]:
-        """Embed a list of documents (used for indexing in Chroma)."""
-        return self._embed(texts)
+        def __call__(self, input: list[str]) -> list[list[float]]:
+            return self._embed(input)
 
-    def embed_query(self, text: str) -> list[float]:
-        """Embed a single query (used for retrieval in Chroma)."""
-        return self._embed([text])[0]
+        def embed_documents(self, texts: list[str]) -> list[list[float]]:
+            return self._embed(texts)
 
-    def _embed(self, input: list[str]) -> list[list[float]]:
-        all_embeddings = []
-        for i in range(0, len(input), self.batch_size):
-            batch = input[i:i+self.batch_size]
-            response = genai_client.models.embed_content(
-                model=self.model,
-                contents=batch,
-                config=types.EmbedContentConfig(task_type="SEMANTIC_SIMILARITY")
-            )
-            batch_embeddings = [e.values for e in response.embeddings]
-            all_embeddings.extend(batch_embeddings)
-        return all_embeddings
+        def embed_query(self, input: str, **kwargs) -> list[float]:
+            """Chroma passes `input` as a kwarg, so we accept it explicitly."""
+            return self._embed([input])[0]
 
-    def name(self) -> str:
-        return f"GeminiEmbeddingFunction-{self.model}"
+        def _embed(self, input: list[str]) -> list[list[float]]:
+            all_embeddings = []
+            for i in range(0, len(input), self.batch_size):
+                batch = input[i:i+self.batch_size]
+                response = genai_client.models.embed_content(
+                    model=self.model,
+                    contents=batch,
+                    config=types.EmbedContentConfig(task_type="SEMANTIC_SIMILARITY")
+                )
+                batch_embeddings = [e.values for e in response.embeddings]
+                all_embeddings.extend(batch_embeddings)
+            return all_embeddings
+
+        def name(self) -> str:
+            return f"GeminiEmbeddingFunction-{self.model}"
+
