@@ -1,0 +1,6 @@
+build-essential
+libopenblas-dev
+libomp-dev
+python3-dev
+sqlite3
+libsqlite3-dev

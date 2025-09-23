@@ -2,10 +2,14 @@ import os
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
+import streamlit as st
 
 load_dotenv()
 
-genai_client = genai.Client(api_key=os.getenv("GOOGLE_API_KEY"))
+api_key = os.getenv("GOOGLE_API_KEY")
+if not api_key:
+    api_key = st.secrets["GOOGLE_API_KEY"]
+genai_client = genai.Client(api_key=api_key)
 
 class GeminiEmbeddingFunction:
     """

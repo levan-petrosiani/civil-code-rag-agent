@@ -1,7 +1,11 @@
 import os
 from google import genai
+import streamlit as st
 
-genai_client = genai.Client(api_key=os.getenv("GOOGLE_API_KEY"))
+api_key = os.getenv("GOOGLE_API_KEY")
+if not api_key:
+    api_key = st.secrets["GOOGLE_API_KEY"]
+genai_client = genai.Client(api_key=api_key)
 
 def answer_question(user_question: str, context: str) -> str:
     """
