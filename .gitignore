@@ -1,6 +1,6 @@
 # Virtual environments
 law-agent-env
-.law-agent-env
+.law-agent-env/
 .env
 venv/
 .venv/
