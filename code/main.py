@@ -23,9 +23,9 @@ def main():
     st.set_page_config(page_title="AI ასისტენტი", page_icon="🤖", layout="centered")
     st.title("საქართველოს სამოქალაქო კოდექსის AI RAG ასისტენტი")
 
-    welcome_1 = "👋 გამარჯობა!\n"
-    welcome_2 = """
-        მე ვარ **AI იურიდიული ასისტენტი**, რომელიც სპეციალიზებულია **საქართველოს სამოქალაქო კოდექსში**.\n
+    welcome = """
+    👋 გამარჯობა!\n
+    მე ვარ **AI იურიდიული ასისტენტი**, რომელიც სპეციალიზებულია **საქართველოს სამოქალაქო კოდექსში**.\n
     შეგიძლიათ მომწეროთ ნებისმიერი კითხვა და მე მოგაწვდით ზუსტ და სტრუქტურირებულ პასუხს **მხოლოდ კოდექსის ტექსტზე დაყრდნობით.**    
     """
 
@@ -33,8 +33,8 @@ def main():
     rag = initialize_rag_system()
 
     with st.chat_message("ai"):
-        st.write(welcome_1)
-        st.write(welcome_2)
+        st.write(welcome)
+
 
 
     # Initialize chat history

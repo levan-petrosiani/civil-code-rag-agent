@@ -1,103 +1,72 @@
 from rag_pipeline.sparse_retriever import SparseRetriever
 from core.embeddings import GeminiEmbeddingFunction
-from sklearn.metrics.pairwise import cosine_similarity
+import numpy as np
 
-
-def rerank_chunks(query, chunk_texts, emb_lookup,  embedding_model = GeminiEmbeddingFunction()):
-    """
-    ეს ფუნქცია ხელახლა აფასებს და რანჟირებს ტექსტის ფრაგმენტებს (chunk_texts) მომხმარებლის შეკითხვის (query) მიმართ, კოსინუსური მსგავსების გამოყენებით. ფუნქცია:
-
-    1. ქმნის შეკითხვის ვექტორულ წარმოდგენას (query_emb) GeminiEmbeddingFunction-ის გამოყენებით.
-    2. თითოეული ფრაგმენტისთვის იღებს ან არსებულ ემბედინგს emb_lookup-დან, ან ქმნის ახალს, თუ ის არ არსებობს.
-    3. ითვლის კოსინუსურ მსგავსებას შეკითხვისა და ფრაგმენტის ემბედინგებს შორის.
-    4. აბრუნებს ფრაგმენტების სიას, დალაგებულს მსგავსების ქულის მიხედვით (კლებადობით).
-    """
-
-    # Embed query 
-    query_emb = embedding_model([query])[0]
-
-    scores = []
-    for text in chunk_texts:
-        if text in emb_lookup:
-            # Use stored embedding if available
-            chunk_emb = emb_lookup[text]
-        else:
-            chunk_emb = embedding_model([text])[0]
-
-        score = cosine_similarity([query_emb], [chunk_emb])[0][0]
-        scores.append((score, text))
-
-    # Sort by similarity
-    ranked = [c for _, c in sorted(scores, key=lambda x: x[0], reverse=True)]
-    return ranked
-
-def _normalize(x):
-    """Ensure embeddings are always plain Python lists."""
-    if hasattr(x, "tolist"):  # numpy array
+def _normalize_emb(x):
+    """Convert numpy arrays -> python lists; leave lists as-is."""
+    if hasattr(x, "tolist"):
         return x.tolist()
     return x
 
+def _cosine_similarity(a, b):
+    a = np.array(a, dtype=float)
+    b = np.array(b, dtype=float)
+    na = np.linalg.norm(a)
+    nb = np.linalg.norm(b)
+    if na == 0 or nb == 0:
+        return 0.0
+    return float(np.dot(a, b) / (na * nb))
+
+def rerank_chunks(query, chunk_texts, emb_lookup, embedding_model=GeminiEmbeddingFunction(), query_emb=None):
+    # Reuse query_emb if provided
+    if query_emb is None:
+        query_emb = embedding_model([query])[0]
+    query_emb = _normalize_emb(query_emb)
+
+    scores = []
+    for text in chunk_texts:
+        chunk_emb = emb_lookup.get(text)
+        if chunk_emb is None:
+            chunk_emb = embedding_model([text])[0]
+        chunk_emb = _normalize_emb(chunk_emb)
+        score = _cosine_similarity(query_emb, chunk_emb)
+        scores.append((score, text))
+
+    ranked = [c for _, c in sorted(scores, key=lambda x: x[0], reverse=True)]
+    return ranked
 
 class HybridRAG:
-    """
-    ეს კლასი ახორციელებს ჰიბრიდულ RAG (Retrieval-Augmented Generation) სისტემას,
-    რომელიც აერთიანებს მკვრივ (dense) და იშვიათ (sparse) ძიების მეთოდებს საქართველოს სამოქალაქო კოდექსის ტექსტის ფრაგმენტების მოსაძებნად.
-
-    __init__(...):
-    ინიციალიზაციის ფუნქცია, რომელიც იღებს Chroma კოლექციას (collection),
-    ტექსტის ფრაგმენტებს (chunks) და ზღვრებს მკვრივი (top_k_dense) და იშვიათი (top_k_sparse) ძიების შედეგების რაოდენობისთვის.
-    ქმნის SparseRetriever ობიექტს იშვიათი ძიებისთვის.
-    
-    retrieve(self, query):
-    ძიების ფუნქცია, რომელიც:
-
-    1. ახორციელებს მკვრივ ძიებას Chroma კოლექციაში, აბრუნებს top_k_dense ყველაზე შესაბამის დოკუმენტსა და მათ ემბედინგებს.
-    2. ახორციელებს იშვიათ ძიებას SparseRetriever-ის გამოყენებით, აბრუნებს top_k_sparse დოკუმენტს.
-    3. აერთიანებს და აშორებს დუბლიკატებს ორივე ძიების შედეგებიდან.
-    4. ქმნის ემბედინგების ლუქაპს (emb_lookup) მკვრივი ძიებისთვის.
-    5. ხელახლა რანჟირებს შერწყმულ დოკუმენტებს rerank_chunks ფუნქციის გამოყენებით.
-    6. აბრუნებს 5 ყველაზე შესაბამის ფრაგმენტს.
-    """
-    
     def __init__(self, collection, chunks, top_k_dense=10, top_k_sparse=10):
         self.collection = collection
         self.sparse = SparseRetriever(chunks)
         self.top_k_dense = top_k_dense
         self.top_k_sparse = top_k_sparse
-
+        self.embedding_model = GeminiEmbeddingFunction()
 
     def retrieve(self, query):
-        embedding_model = GeminiEmbeddingFunction()
-        query_emb = embedding_model([query])
+        # compute query embedding once and pass it to Chroma
+        query_emb = self.embedding_model([query])[0]
 
         dense_results = self.collection.query(
-            query_embeddings=query_emb,
+            query_embeddings=[query_emb],
             n_results=self.top_k_dense,
             include=['documents', 'embeddings']
         )
 
-        dense_docs = dense_results["documents"][0]
-
+        dense_docs = dense_results.get("documents", [[]])[0]
         dense_embs = dense_results.get("embeddings", [[]])[0]
-        dense_embs = _normalize(dense_embs)
 
+        # Normalize numpy -> list (Chroma may return numpy arrays on cloud)
+        if hasattr(dense_embs, "tolist"):
+            dense_embs = dense_embs.tolist()
+
+        # Fallback: if embeddings are missing or not in expected structure
         if len(dense_embs) == 0 or isinstance(dense_embs[0], float):
-            dense_embs = embedding_model(dense_docs)
+            dense_embs = self.embedding_model(dense_docs)
 
-
-
-        # Get sparse candidates 
         sparse_docs = self.sparse.search(query, top_k=self.top_k_sparse)
-
-        # Merge and deduplicate texts
         combined_docs = list(dict.fromkeys(dense_docs + sparse_docs))
-
-        # Build a lookup for embeddings 
         emb_lookup = {doc: emb for doc, emb in zip(dense_docs, dense_embs)}
 
-        # Pass both texts + embeddings to rerank
-        ranked = rerank_chunks(query, combined_docs, emb_lookup)
-
-        # return top 5 most relevant chunks
+        ranked = rerank_chunks(query, combined_docs, emb_lookup, self.embedding_model, query_emb)
         return ranked[:5]
-    
