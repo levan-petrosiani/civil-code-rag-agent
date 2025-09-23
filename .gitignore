@@ -1,9 +1,9 @@
 # Virtual environments
-.law-agent
+.law-agent-env
 .env
 venv/
 .venv/
-law-agent/
+law-agent-env/
 
 # Databases
 data/chroma_db/

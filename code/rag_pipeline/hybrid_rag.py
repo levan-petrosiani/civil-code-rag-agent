@@ -59,15 +59,26 @@ class HybridRAG:
         self.top_k_dense = top_k_dense
         self.top_k_sparse = top_k_sparse
 
-    def retrieve(self, query):
+    def retrieve(self, query): 
+        embedding_model = GeminiEmbeddingFunction()
+        query_emb = embedding_model([query])  # returns [[float,...]]
+
         dense_results = self.collection.query(
-            query_texts=[query],
+            query_embeddings=query_emb,
             n_results=self.top_k_dense,
             include=['documents', 'embeddings']
         )
 
         dense_docs = dense_results["documents"][0]
-        dense_embs = dense_results["embeddings"][0]
+
+        # Ensure embeddings are always a list of lists
+        dense_embs = dense_results.get("embeddings", [[]])[0]
+
+        if len(dense_embs) == 0 or isinstance(dense_embs[0], float):
+            # fallback: embed manually if Chroma didn't return proper embeddings
+            dense_embs = GeminiEmbeddingFunction()(dense_docs)
+
+
 
         # Get sparse candidates 
         sparse_docs = self.sparse.search(query, top_k=self.top_k_sparse)
