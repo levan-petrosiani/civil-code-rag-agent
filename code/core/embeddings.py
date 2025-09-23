@@ -37,8 +37,19 @@ class GeminiEmbeddingFunction:
         self.batch_size = batch_size
 
     def __call__(self, input: list[str]) -> list[list[float]]:
-        all_embeddings = []
+        """Keep compatibility with my old code."""
+        return self._embed(input)
 
+    def embed_documents(self, texts: list[str]) -> list[list[float]]:
+        """Embed a list of documents (used for indexing in Chroma)."""
+        return self._embed(texts)
+
+    def embed_query(self, text: str) -> list[float]:
+        """Embed a single query (used for retrieval in Chroma)."""
+        return self._embed([text])[0]
+
+    def _embed(self, input: list[str]) -> list[list[float]]:
+        all_embeddings = []
         for i in range(0, len(input), self.batch_size):
             batch = input[i:i+self.batch_size]
             response = genai_client.models.embed_content(
@@ -48,9 +59,7 @@ class GeminiEmbeddingFunction:
             )
             batch_embeddings = [e.values for e in response.embeddings]
             all_embeddings.extend(batch_embeddings)
-
         return all_embeddings
 
     def name(self) -> str:
-        """Required by Chroma to identify embedding function."""
         return f"GeminiEmbeddingFunction-{self.model}"
