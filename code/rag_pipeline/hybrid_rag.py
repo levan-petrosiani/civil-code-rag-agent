@@ -31,6 +31,12 @@ def rerank_chunks(query, chunk_texts, emb_lookup,  embedding_model = GeminiEmbed
     ranked = [c for _, c in sorted(scores, key=lambda x: x[0], reverse=True)]
     return ranked
 
+def _normalize(x):
+    """Ensure embeddings are always plain Python lists."""
+    if hasattr(x, "tolist"):  # numpy array
+        return x.tolist()
+    return x
+
 
 class HybridRAG:
     """
@@ -59,9 +65,10 @@ class HybridRAG:
         self.top_k_dense = top_k_dense
         self.top_k_sparse = top_k_sparse
 
-    def retrieve(self, query): 
+
+    def retrieve(self, query):
         embedding_model = GeminiEmbeddingFunction()
-        query_emb = embedding_model([query])  # returns [[float,...]]
+        query_emb = embedding_model([query])
 
         dense_results = self.collection.query(
             query_embeddings=query_emb,
@@ -71,13 +78,11 @@ class HybridRAG:
 
         dense_docs = dense_results["documents"][0]
 
-        # Ensure embeddings are always a list of lists
         dense_embs = dense_results.get("embeddings", [[]])[0]
         dense_embs = _normalize(dense_embs)
 
         if len(dense_embs) == 0 or isinstance(dense_embs[0], float):
-            # fallback: embed manually if Chroma didn't return proper embeddings
-            dense_embs = GeminiEmbeddingFunction()(dense_docs)
+            dense_embs = embedding_model(dense_docs)
 
 
 
@@ -96,8 +101,3 @@ class HybridRAG:
         # return top 5 most relevant chunks
         return ranked[:5]
     
-def _normalize(x):
-    """Ensure embeddings are always plain Python lists."""
-    if hasattr(x, "tolist"):  # numpy array
-        return x.tolist()
-    return x
