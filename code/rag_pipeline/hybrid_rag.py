@@ -73,6 +73,7 @@ class HybridRAG:
 
         # Ensure embeddings are always a list of lists
         dense_embs = dense_results.get("embeddings", [[]])[0]
+        dense_embs = _normalize(dense_embs)
 
         if len(dense_embs) == 0 or isinstance(dense_embs[0], float):
             # fallback: embed manually if Chroma didn't return proper embeddings
@@ -94,3 +95,9 @@ class HybridRAG:
 
         # return top 5 most relevant chunks
         return ranked[:5]
+    
+def _normalize(x):
+    """Ensure embeddings are always plain Python lists."""
+    if hasattr(x, "tolist"):  # numpy array
+        return x.tolist()
+    return x
