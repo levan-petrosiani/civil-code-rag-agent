@@ -7,3 +7,4 @@ python-docx==1.2.0
 rank-bm25==0.2.2
 pandas==2.3.2
 orjson==3.11.3
+pysqlite3-binary==0.5.2.post3
