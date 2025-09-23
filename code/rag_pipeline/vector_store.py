@@ -1,3 +1,11 @@
+try:
+    import pysqlite3
+    import sys
+    sys.modules["sqlite3"] = pysqlite3
+    print("✅ Using pysqlite3-binary for modern SQLite support")
+except ImportError:
+    print("⚠️ pysqlite3-binary not installed, relying on system SQLite")
+
 import chromadb
 from core.embeddings import GeminiEmbeddingFunction
 
